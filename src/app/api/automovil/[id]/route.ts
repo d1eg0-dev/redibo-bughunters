@@ -1,4 +1,4 @@
-import {NextRequest, NextResponse } from "next/server";
+import { NextResponse, type RouteHandlerContext } from "next/server";
 import db from "@/lib/db";
 import { RowDataPacket } from "mysql2";
 
@@ -9,22 +9,18 @@ interface Automovil extends RowDataPacket {
 }
 
 export async function GET(  
-  request: NextRequest,
-  { params }: { params: { id: string } } 
+  request: Request,
+  { params }: { params: Promise<{ id: string }> } 
 ) {
   try {
-    const { id } =   params
-
+    const { id } = await params;                
     const [rows] = await db.query<Automovil[]>(
       'SELECT costo, garantia FROM automovil WHERE id = ?',
       [id]
     );
 
-    if (!rows || rows.length === 0) {
-      return NextResponse.json(
-        { error: 'Automóvil no encontrado' },
-        { status: 404 }
-      );
+    if (!rows?.length) {
+      return NextResponse.json({ error: "Automóvil no encontrado" }, { status: 404 });
     }
   
     return NextResponse.json(rows[0]);
