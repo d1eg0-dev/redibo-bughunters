@@ -1,8 +1,7 @@
 // src/app/api/usuario/[id]/route.ts
-
-import { NextResponse } from 'next/server';
-import db from '@/lib/db';
-import { RowDataPacket } from 'mysql2'; // Importamos RowDataPacket correctamente
+import { NextResponse } from "next/server";
+import db from "@/lib/db";
+import { RowDataPacket } from "mysql2";
 
 interface Usuario extends RowDataPacket {
   id: number;
@@ -10,15 +9,19 @@ interface Usuario extends RowDataPacket {
   ubicacion: string;
 }
 
+
 interface Params {
   params: {
     id: string;
   };
 }
 
-export async function GET(request: Request, { params }: Params) {
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
-    const { id } = params;
+    const { id } = await params;    
 
     const [rows] = await db.query<Usuario[]>(
       'SELECT id, nombre, ubicacion FROM usuario WHERE id = ?',
