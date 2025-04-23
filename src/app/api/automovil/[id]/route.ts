@@ -1,6 +1,7 @@
-import { NextResponse } from "next/server";
+import {NextRequest, NextResponse } from "next/server";
 import db from "@/lib/db";
 import { RowDataPacket } from "mysql2";
+
 
 interface Automovil extends RowDataPacket {
   costo: number;
@@ -12,9 +13,11 @@ interface Params {
   };
 }
 
-export async function GET(request: Request, { params }: Params) {
+export async function GET(  
+  request: NextRequest,
+  context: Params) {
   try {
-    const { id } = params;
+    const { id } = context.params
 
     const [rows] = await db.query<Automovil[]>(
       'SELECT costo, garantia FROM automovil WHERE id = ?',
