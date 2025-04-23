@@ -15,7 +15,8 @@ interface Params {
 
 export async function GET(  
   request: NextRequest,
-  context: Params) {
+  context: { params: { id: string } }
+) {
   try {
     const { id } = context.params
 
