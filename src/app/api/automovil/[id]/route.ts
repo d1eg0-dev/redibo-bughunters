@@ -1,7 +1,6 @@
-import { NextResponse, type RouteHandlerContext } from "next/server";
+import { NextResponse } from "next/server";
 import db from "@/lib/db";
 import { RowDataPacket } from "mysql2";
-
 
 interface Automovil extends RowDataPacket {
   costo: number;
