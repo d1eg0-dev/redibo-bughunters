@@ -5,20 +5,15 @@ import { RowDataPacket } from "mysql2";
 
 interface Automovil extends RowDataPacket {
   costo: number;
-}
-
-interface Params {
-  params: {
-    id: string;
-  };
+  garantia: string;
 }
 
 export async function GET(  
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }  
+  { params }: { params: { id: string } } 
 ) {
   try {
-    const { id } =  await params
+    const { id } =   params
 
     const [rows] = await db.query<Automovil[]>(
       'SELECT costo, garantia FROM automovil WHERE id = ?',
@@ -26,10 +21,13 @@ export async function GET(
     );
 
     if (!rows || rows.length === 0) {
-      return NextResponse.json({ error: 'Automóvil no encontrado' }, { status: 404 });
+      return NextResponse.json(
+        { error: 'Automóvil no encontrado' },
+        { status: 404 }
+      );
     }
-
-    return NextResponse.json({id});
+  
+    return NextResponse.json(rows[0]);
   } catch (error) {
     console.error('Error al obtener automóvil:', error);
     return NextResponse.json({ error: 'Error del servidor' }, { status: 500 });
