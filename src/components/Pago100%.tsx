@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { Img } from 'react-image';
 
 interface NotificacionProps {
   monto: string;
@@ -11,91 +12,97 @@ export default function NotificacionPago100({ monto, onClose }: NotificacionProp
   const [mounted, setMounted] = useState(false);
   const [fecha, setFecha] = useState('');
   const [hora, setHora] = useState('');
+  const [usuario, setUsuario] = useState('');
+  const [ubicacion, setUbicacion] = useState('');
 
   useEffect(() => {
     setMounted(true);
-    
-    const now = new Date();
-    const fechaAjustada = new Date(now.getTime() - 1 * 60000); // Restar 1 minuto
 
-    // Configurar opciones de formato
+    const now = new Date();
+    const fechaAjustada = new Date(now.getTime() - 1 * 60000);
+
     const opcionesFecha: Intl.DateTimeFormatOptions = {
       day: 'numeric',
       month: 'long',
       year: 'numeric',
     };
-    
+
     const opcionesHora: Intl.DateTimeFormatOptions = {
       hour: '2-digit',
       minute: '2-digit',
       hour12: false
     };
 
-    // Establecer valores formateados
     setFecha(fechaAjustada.toLocaleDateString('es-ES', opcionesFecha));
     setHora(fechaAjustada.toLocaleTimeString('es-ES', opcionesHora));
+
+    // 🔥 Llamada API para traer usuario y ubicación
+    async function cargarDatosUsuario() {
+      try {
+        const res = await fetch('/api/usuario/1'); // Ajusta ID si es necesario
+        const data = await res.json();
+
+        setUsuario(data.nombre);   // nombre del usuario
+        setUbicacion(data.ubicacion); // ubicación
+      } catch (error) {
+        console.error('Error cargando datos de usuario:', error);
+      }
+    }
+
+    cargarDatosUsuario();
   }, []);
 
   if (!mounted) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[1000]">
-      <div className="w-full max-w-xs bg-white rounded-xl shadow-lg p-6 border border-gray-200">
-        {/* Encabezado */}
-        <div className="flex flex-col items-center mb-4">
-          <div className="bg-[#FCA311] rounded-full p-3 mb-3">
-            <span className="text-2xl text-white">🔔</span>
-          </div>
-          <h1 className="text-xl font-semibold text-gray-800 text-center">
-            ¡Pago completado al 100%!
-          </h1>
-          <p className="text-sm text-gray-600 mt-1 text-center">
-            Monto pagado: ${monto} BOB
-          </p>
-        </div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm">
+      <div className="bg-white rounded-xl shadow-xl p-4 w-full max-w-md pointer-events-auto">
+        {/* Icono */}
+        <Img
+          src="/campana1.svg"
+          alt="Notificación"
+          className="w-10 h-10 mb-2 mx-auto"
+        />
 
-        {/* Lista de detalles */}
-        <ul className="space-y-4 mb-6">
-          <li className="flex items-center gap-3">
-            <span className="text-xl">📅</span>
-            <div>
-              <p className="text-sm font-medium text-gray-600">Fecha</p>
-              <p className="text-sm text-gray-800">{fecha}</p>
-            </div>
+        {/* Título */}
+        <h2 className="text-lg font-semibold text-center text-gray-800 mb-0.5">
+          ¡Pago completado al 100%!
+        </h2>
+
+        {/* Mensaje personalizado */}
+        <p className="text-xs text-center text-gray-600 mb-1">
+          Monto pagado: {monto} BOB
+        </p>
+
+        {/* Detalles */}
+        <ul className="mt-1 text-gray-800 text-xs space-y-0.25 leading-snug">
+          <li className="flex items-center justify-center gap-1">
+            <span className="text-base">📅</span>
+            <span>Fecha: {fecha}</span>
           </li>
-
-          <li className="flex items-center gap-3">
-            <span className="text-xl">⏰</span>
-            <div>
-              <p className="text-sm font-medium text-gray-600">Hora</p>
-              <p className="text-sm text-gray-800">{hora}</p>
-            </div>
+          <li className="flex items-center justify-center gap-1">
+            <span className="text-base">⏰</span>
+            <span>Hora: {hora}</span>
           </li>
-
-          <li className="flex items-center gap-3">
-            <span className="text-xl">📍</span>
-            <div>
-              <p className="text-sm font-medium text-gray-600">Ubicación</p>
-              <p className="text-sm text-gray-800">Av. Central #456</p>
-            </div>
+          <li className="flex items-center justify-center gap-1">
+            <span className="text-base">📍</span>
+            <span>Ubicación: {ubicacion || "Cargando ubicación..."}</span>
           </li>
-
-          <li className="flex items-center gap-3">
-            <span className="text-xl">👤</span>
-            <div>
-              <p className="text-sm font-medium text-gray-600">Usuario</p>
-              <p className="text-sm text-gray-800">Carlos Gomez</p>
-            </div>
+          <li className="flex items-center justify-center gap-1">
+            <span className="text-base">🧍‍♂</span>
+            <span>Usuario: {usuario || "Cargando usuario..."}</span>
           </li>
         </ul>
 
-        {/* Botón de cierre */}
-        <button
-          onClick={onClose}
-          className="w-full bg-[#11295B] text-white py-2 rounded-lg font-medium hover:bg-[#0a1c3d] transition-colors"
-        >
-          Cerrar
-        </button>
+        {/* Botón */}
+        <div className="mt-4 flex justify-center">
+          <button
+            onClick={onClose}
+            className="bg-[#1E2A78] text-white px-10 py-2 rounded-lg hover:bg-[#1b2569] text-sm transition-colors"
+          >
+            Cerrar
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -26,7 +26,7 @@ export default function NotificacionesDetalle({ datos, onClose }: Notificaciones
  
 
   return (
-    <div className="fixed inset-0   bg-white/10 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-white/10 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl w-full max-w-md sm:p-6 p-4 shadow-2xl text-center border-0">
         <Img 
         src="/campana1.svg"
@@ -71,7 +71,7 @@ export default function NotificacionesDetalle({ datos, onClose }: Notificaciones
             {datos.ubicacion}
           </p>
           {/* Solo mostrar el usuario si es el mismo que está logueado */}
-          {session.user.id === datos.id && (
+          {String(session.user.id).trim() === String(datos.id).trim() && (
             <p>
               <span className="font-family: 'Inter' text-gray-600"> <UserIcon className="w-5 h-5 text-blue-500 inline mr-1" /> Usuario:</span>{" "}
               {datos.name}
