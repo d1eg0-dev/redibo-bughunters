@@ -15,10 +15,10 @@ interface Params {
 
 export async function GET(  
   request: NextRequest,
-  context: { params: { id: string } }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = context.params
+    const { id } = params
 
     const [rows] = await db.query<Automovil[]>(
       'SELECT costo, garantia FROM automovil WHERE id = ?',
