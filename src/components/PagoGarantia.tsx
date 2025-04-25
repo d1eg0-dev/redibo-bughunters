@@ -81,8 +81,15 @@ export default function PagoGarantia() {
           }
         setResultado("exito");
 
+        const ahora = new Date();
         const fechaActual = new Date().toISOString();
 
+        setDatosCliente(prev => prev && ({
+          ...prev,
+          fecha: ahora.toLocaleDateString(),
+          hora: ahora.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+        }));
+        
         await fetch('/api/pago', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
