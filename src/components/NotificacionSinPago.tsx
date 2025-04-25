@@ -105,7 +105,7 @@ export default function NotificacionSinPago({ onClose }: Props) {
             onClick={onClose}
             className="bg-[#1E2A78] text-white px-10 py-1.5 rounded-lg hover:bg-[#1b2569] text-sm transition-colors"
           >
-            Ir al pago
+            Cerrar
           </button>
         </div>
       </div>
