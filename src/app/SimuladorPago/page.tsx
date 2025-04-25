@@ -6,7 +6,7 @@ import NotificacionSinPago from "@/components/NotificacionSinPago";
 import { useState, useEffect } from "react";
 import type { ChangeEvent, FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import ErrorNotification from "@/components/ErrorNotificacion"; 
+import { useError } from "@/context/ErrorContext"; 
 import "./styles.css";
 
 export default function SimuladorPago() {
@@ -20,12 +20,12 @@ export default function SimuladorPago() {
   const [precio, setPrecio] = useState(0); // Precio real traído de la BD
   const [resultado, setResultado] = useState<"exito" | "fallo" | null>(null);
   const [cargando, setCargando] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [modalCargando, setModalCargando] = useState(false);
   const [mostrarNotificacion100, setMostrarNotificacion100] = useState(false);
   const [mostrarNotificacion50, setMostrarNotificacion50] = useState(false);
   const [mostrarNotificacionno, setMostrarNotificacionno] = useState(false);
-
+  
+  const { showError } = useError(); 
   const router = useRouter();
 
   useEffect(() => {
@@ -47,6 +47,7 @@ export default function SimuladorPago() {
       }));
     } catch (error) {
       console.error("Error cargando datos iniciales:", error);
+      showError("Inténtelo nuevamente o contacte a soporte técnico.","reserva");
     }
     }
 
@@ -72,41 +73,69 @@ export default function SimuladorPago() {
       });
     } catch (error) {
       console.error("Error registrando pago:", error);
+      showError("Inténtelo nuevamente o contacte a soporte técnico.","reserva");
     }
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setResultado(null);
-    setError(null);
+   // setError(null);
     setCargando(true);
 
+    ///
+    const urlParams = new URLSearchParams(window.location.search);
+    const conexionSimulada = urlParams.get("conexion") === "true";
+   ///
     try {
       const res = await fetch("/api/pagar"); // Aquí normalmente verificarías pago
       const data = await res.json();
 
       if (!res.ok) {
         setResultado("fallo");
-        setError(data.error || "Error desconocido");
+        showError(data.error || "Error desconocido");
       } else {
-        setResultado("exito");
 
+        //Simulador de errores
+        const random = Math.random();
+      //%%%%%%%%%%%%%%%%%%%%%%
+      if (formData.metodoPago === "tarjeta" && random < 0.1) {
+       setResultado("fallo");
+      showError("Tarjeta rechazada.","reserva");
+      return;
+      }
+      //%
+      if (formData.metodoPago === "transferencia" && random < 0.1) {
+       setResultado("fallo");
+       showError("Timeout en la transacción.","reserva");
+       return;
+        }
+      //%%%%%%%%%%%%%%%%%%%%%%
+        setResultado("exito");
         const montoCalculado = (precio * parseFloat(formData.porcentaje) / 100).toFixed(2);
         const fechaActual = new Date().toLocaleString('es-BO', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-
         await registrarPago(montoCalculado, formData.metodoPago, fechaActual);
-
+       
+       
         if (parseFloat(formData.porcentaje) === 100) {
-          setMostrarNotificacion100(true);
-        } else if (parseFloat(formData.porcentaje) === 50) {
-          setMostrarNotificacion50(true);
-        } else if (parseFloat(formData.porcentaje) === 0) {
+        const random = Math.random();
+                if(random<0.8){ setMostrarNotificacion100(true);}
+                else{setResultado("fallo");
+                showError("Saldo Insuficiente.","reserva");
+                return;}
+       } else if (parseFloat(formData.porcentaje) === 50) {
+                const random = Math.random();
+                if(random<0.8){ setMostrarNotificacion50(true);}
+                else{setResultado("fallo");
+                showError("Saldo Insuficiente.","reserva");
+                return;}
+       }  else if (parseFloat(formData.porcentaje) === 0) {
           setMostrarNotificacionno(true);
         }
       }
     } catch (err) {
       setResultado("fallo");
-      setError("Error de conexión con el servidor.");
+      showError("Error de conexión con la Base de Datos.","reserva");
     } finally {
       setCargando(false);
     }
@@ -115,7 +144,7 @@ export default function SimuladorPago() {
   const cerrarModal = () => {
     setModalCargando(true);
     setTimeout(() => {
-      setError(null);
+     // setError(null);
       setModalCargando(false);
     }, 500);
   };
@@ -165,15 +194,7 @@ export default function SimuladorPago() {
       {mostrarNotificacion50 && <Notificacion50PorCiento monto={totalPagarHoy.toFixed(2)} onClose={() => setMostrarNotificacion50(false)} />}
       {mostrarNotificacionno && <NotificacionSinPago onClose={() => setMostrarNotificacionno(false)} />}
 
-      {/* MODAL DE ERROR */}
-      {error && (
-        <ErrorNotification
-          error={error}
-          onClose={() => setError(null)}
-          modalCargando={modalCargando}
-          onAceptar={cerrarModal}
-        />
-      )}
+    
     </div>
   );
 }

@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 import './Garantias.css';
 import NotificacionGarantia from "@/components/NotificacionGarantia";
 import { Cliente } from "@/types/cliente";
-import ErrorNotification from '@/components/ErrorNotificacion';
+import { useError } from "@/context/ErrorContext";
 
 export default function PagoGarantia() {
   const [precioGarantia, setPrecioGarantia] = useState(0);
@@ -17,10 +17,10 @@ export default function PagoGarantia() {
   const [mostrarNoti, setMostrarNoti] = useState(false);
   const [resultado, setResultado] = useState<'exito' | 'fallo' | null>(null);
   const [cargando, setCargando] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [conexionExitosa, setConexionExitosa] = useState<boolean | null>(null);
   const [modalCargando, setModalCargando] = useState(false);
   const router = useRouter();
+  const { showError } = useError(); 
 
   useEffect(() => {
     async function cargarDatosIniciales() {
@@ -56,7 +56,7 @@ export default function PagoGarantia() {
     e.preventDefault();
     setCargando(true);
     setResultado(null);
-    setError(null);
+    
 
     try {
       const res = await fetch("/api/pagar");
@@ -64,8 +64,21 @@ export default function PagoGarantia() {
 
       if (!res.ok) {
         setResultado("fallo");
-        setError(data.error || "Error desconocido");
+        showError(data.error || "Error desconocido");
       } else {
+        const random = Math.random();
+        //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        if (metodoPago === "tarjeta" && random < 0.1) {
+              setResultado("fallo");
+               showError("Tarjeta rechazada.","garantia");
+               return;
+        }
+        //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        if (metodoPago === "transferencia" && random < 0.1) {
+              setResultado("fallo");
+              showError("Timeout en la transacción.","garantia");
+              return;
+          }
         setResultado("exito");
 
         const fechaActual = new Date().toISOString();
@@ -86,7 +99,7 @@ export default function PagoGarantia() {
     } catch (err) {
       console.error("Error de conexión", err);
       setResultado("fallo");
-      setError("Error de conexión con el servidor.");
+      showError("Error de conexión con el servidor.");
     } finally {
       setCargando(false);
     }
@@ -95,7 +108,6 @@ export default function PagoGarantia() {
     setModalCargando(true);
     setTimeout(() => {
       setModalCargando(false);
-      setError(null);
     }, 500);
   };
 
@@ -138,17 +150,7 @@ export default function PagoGarantia() {
           onClose={() => setMostrarNoti(false)}
         />
       )}
-   
-
-   {/*Modal de error*/}
-   {error && (
-        <ErrorNotification
-        error={error}
-        onClose={() => setError(null)}
-        modalCargando={modalCargando}
-        onAceptar={manejarAceptar}
-      />
-      )}
+  
     </div>
   );
 }

@@ -4,11 +4,10 @@ import db from '@/lib/db';
 import { errores } from '@/lib/errores';
 
 export async function GET() {
-  const error = errores[Math.floor(Math.random() * errores.length)];
-
-  if (error) {
-    return NextResponse.json({ success: false, error }, { status: 400 });
-  }
+ // const error = errores[Math.floor(Math.random() * errores.length)];
+ // if (error) {
+ //   return NextResponse.json({ success: false, error }, { status: 400 });
+ // }
 
   try {
     const [rows] = await db.query('SELECT 1'); // Conexión simple
