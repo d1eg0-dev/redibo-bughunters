@@ -107,7 +107,7 @@ body {
     width: 100%;
     max-width: none;
     padding: 1rem;
-    margin: 9.5rem;
+    margin: 2rem auto;
     box-sizing: border-box;
   }
   .titulo {
