@@ -99,13 +99,13 @@ export default function SimuladorPago() {
         //Simulador de errores
         const random = Math.random();
       //%%%%%%%%%%%%%%%%%%%%%%
-      if (formData.metodoPago === "tarjeta" && random < 0.1) {
+      if (formData.metodoPago === "tarjeta" && random < 0.3) {
        setResultado("fallo");
       showError("Tarjeta rechazada.","reserva");
       return;
       }
       //%
-      if (formData.metodoPago === "transferencia" && random < 0.1) {
+      if (formData.metodoPago === "transferencia" && random < 0.2) {
        setResultado("fallo");
        showError("Timeout en la transacción.","reserva");
        return;

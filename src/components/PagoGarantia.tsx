@@ -68,13 +68,13 @@ export default function PagoGarantia() {
       } else {
         const random = Math.random();
         //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        if (metodoPago === "tarjeta" && random < 0.1) {
+        if (metodoPago === "tarjeta" && random < 0.3) {
               setResultado("fallo");
                showError("Tarjeta rechazada.","garantia");
                return;
         }
         //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        if (metodoPago === "transferencia" && random < 0.1) {
+        if (metodoPago === "transferencia" && random < 0.3) {
               setResultado("fallo");
               showError("Timeout en la transacción.","garantia");
               return;
