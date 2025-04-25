@@ -39,7 +39,8 @@ export default function PagoGarantia() {
           estado: "Pago confirmado",
           fecha: new Date().toLocaleDateString(),
           hora: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-          ubicacion: userData.ubicacion 
+          ubicacion: userData.ubicacion, 
+          montopagado: garantiaData.garantia
         });
 
         setConexionExitosa(true);

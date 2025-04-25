@@ -6,4 +6,5 @@ export interface Cliente {
     fecha: string; // fecha de la notificación
     hora: string; // hora de la notificación
     ubicacion: string; // campo manual
+    montopagado: number; // monto pagado por el cliente
 }

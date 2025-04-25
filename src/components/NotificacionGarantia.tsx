@@ -58,6 +58,10 @@ export default function NotificacionesDetalle({ datos, onClose }: Notificaciones
             </span>
           </p>
           <p>
+            <span className="font-family: 'Inter' text-gray-600"> 💳 Pagado $:</span>{" "}
+            {datos.montopagado}
+          </p>
+          <p>
             
             <span className="font-family: 'Inter' text-gray-600"> <CalendarIcon className="w-5 h-5 text-gray-500 inline mr-1" /> Fecha:</span>{" "}
             {datos.fecha}
