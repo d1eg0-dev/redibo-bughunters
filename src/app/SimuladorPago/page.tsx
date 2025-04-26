@@ -99,7 +99,8 @@ export default function SimuladorPago() {
         //Simulador de errores
         const random = Math.random();
       //%%%%%%%%%%%%%%%%%%%%%%
-      if (formData.metodoPago === "tarjeta" && random < 0.3) {
+      if (formData.metodoPago === "tarjeta" && random < 0.3 && parseFloat(formData.porcentaje) !== 0  ) {
+
        setResultado("fallo");
       showError("Tarjeta rechazada.","reserva");
       return;
@@ -130,7 +131,11 @@ export default function SimuladorPago() {
                 showError("Saldo Insuficiente.","reserva");
                 return;}
        }  else if (parseFloat(formData.porcentaje) === 0) {
-          setMostrarNotificacionno(true);
+        const random = Math.random();
+        if(random<0.8){ setMostrarNotificacionno(true);}
+        else{setResultado("fallo");
+        showError("Error de red.","reserva");
+        return;}
         }
       }
     } catch (err) {
@@ -154,7 +159,7 @@ export default function SimuladorPago() {
 
   return (
     <div className="pago-container">
-      <h2 className="titulo">Formulario de Reserva</h2>
+      <h2 className="titulo">Simulación de Pago de Reserva</h2>
       <form onSubmit={handleSubmit} className="formulario">
         <div className="desglose">
           <h4 className="subtitulo">Datos de la Reserva</h4>
