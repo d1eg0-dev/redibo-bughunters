@@ -106,7 +106,7 @@ export default function SimuladorPago() {
       return;
       }
       //%
-      if (formData.metodoPago === "transferencia" && random < 0.2) {
+      if (formData.metodoPago === "transferencia" && random < 0.2 && parseFloat(formData.porcentaje) !== 0 ) {
        setResultado("fallo");
        showError("Timeout en la transacción.","reserva");
        return;
