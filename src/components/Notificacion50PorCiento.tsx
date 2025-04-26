@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Img } from 'react-image';
+import { useRouter } from 'next/navigation'; 
 
 interface NotificacionProps {
   monto: string;
@@ -14,6 +15,8 @@ export default function Notificacion50PorCiento({ monto, onClose }: Notificacion
   const [hora, setHora] = useState('');
   const [usuario, setUsuario] = useState('');
   const [ubicacion, setUbicacion] = useState('');
+
+  const router = useRouter();
 
   useEffect(() => {
     setMounted(true);
@@ -115,7 +118,11 @@ export default function Notificacion50PorCiento({ monto, onClose }: Notificacion
         </ul>
 
         <button
-          onClick={onClose}
+            onClick={() => {
+              onClose();
+
+              router.push('/confirmacion');
+            }}
           className="bg-[#11295B] text-white px-10 py-1.5 rounded-lg hover:bg-[#0a1c3d] text-sm transition-colors w-full"
         >
           Completar Pago
