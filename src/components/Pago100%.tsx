@@ -8,16 +8,40 @@ interface NotificacionProps {
   onClose: () => void;
 }
 
+interface NotificationData {
+  fecha: string;
+  hora: string;
+  usuario: string;
+  ubicacion: string;
+  visible: boolean;
+}
+
 export default function NotificacionPago100({ monto, onClose }: NotificacionProps) {
   const [mounted, setMounted] = useState(false);
   const [fecha, setFecha] = useState('');
   const [hora, setHora] = useState('');
   const [usuario, setUsuario] = useState('');
   const [ubicacion, setUbicacion] = useState('');
+  const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     setMounted(true);
 
+    // Recuperar estado del localStorage
+    const savedNotification = localStorage.getItem('lastNotification');
+    if (savedNotification) {
+      const { fecha, hora, usuario, ubicacion, visible }: NotificationData = JSON.parse(savedNotification);
+      setFecha(fecha);
+      setHora(hora);
+      setUsuario(usuario);
+      setUbicacion(ubicacion);
+      setIsVisible(visible);
+      
+      // Si la notificación está marcada como visible, no hacemos nada más
+      if (visible) return;
+    }
+
+    // Si no hay datos guardados o la notificación estaba oculta, generamos nuevos
     const now = new Date();
     const fechaAjustada = new Date(now.getTime() - 1 * 60000);
 
@@ -33,17 +57,33 @@ export default function NotificacionPago100({ monto, onClose }: NotificacionProp
       hour12: false
     };
 
-    setFecha(fechaAjustada.toLocaleDateString('es-ES', opcionesFecha));
-    setHora(fechaAjustada.toLocaleTimeString('es-ES', opcionesHora));
+    const newFecha = fechaAjustada.toLocaleDateString('es-ES', opcionesFecha);
+    const newHora = fechaAjustada.toLocaleTimeString('es-ES', opcionesHora);
 
-    // 🔥 Llamada API para traer usuario y ubicación
+    setFecha(newFecha);
+    setHora(newHora);
+    setIsVisible(true); // Mostramos la notificación
+
+    // Llamada API para traer usuario y ubicación
     async function cargarDatosUsuario() {
       try {
-        const res = await fetch('/api/usuario/1'); // Ajusta ID si es necesario
+        const res = await fetch('/api/usuario/1');
         const data = await res.json();
 
-        setUsuario(data.nombre);   // nombre del usuario
-        setUbicacion(data.ubicacion); // ubicación
+        const newUsuario = data.nombre;
+        const newUbicacion = data.ubicacion;
+
+        setUsuario(newUsuario);
+        setUbicacion(newUbicacion);
+
+        // Guardar en localStorage con visible=true
+        localStorage.setItem('lastNotification', JSON.stringify({
+          fecha: newFecha,
+          hora: newHora,
+          usuario: newUsuario,
+          ubicacion: newUbicacion,
+          visible: true
+        }));
       } catch (error) {
         console.error('Error cargando datos de usuario:', error);
       }
@@ -52,7 +92,22 @@ export default function NotificacionPago100({ monto, onClose }: NotificacionProp
     cargarDatosUsuario();
   }, []);
 
-  if (!mounted) return null;
+  const handleClose = () => {
+    // Actualizar el localStorage marcando la notificación como no visible
+    const savedNotification = localStorage.getItem('lastNotification');
+    if (savedNotification) {
+      const notificationData: NotificationData = JSON.parse(savedNotification);
+      localStorage.setItem('lastNotification', JSON.stringify({
+        ...notificationData,
+        visible: false
+      }));
+    }
+    
+    setIsVisible(false);
+    onClose();
+  };
+
+  if (!mounted || !isVisible) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm">
@@ -66,12 +121,12 @@ export default function NotificacionPago100({ monto, onClose }: NotificacionProp
 
         {/* Título */}
         <h2 className="text-lg font-semibold text-center text-gray-800 mb-0.5">
-          ¡Pago completado al 100%!
+          ¡Deposito Registrado!
         </h2>
 
         {/* Mensaje personalizado */}
         <p className="text-xs text-center text-gray-600 mb-1">
-          Monto pagado: {monto} BOB
+          Realizaste una reserva del 100%.
         </p>
 
         {/* Detalles */}
@@ -97,7 +152,7 @@ export default function NotificacionPago100({ monto, onClose }: NotificacionProp
         {/* Botón */}
         <div className="mt-4 flex justify-center">
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="bg-[#1E2A78] text-white px-10 py-2 rounded-lg hover:bg-[#1b2569] text-sm transition-colors"
           >
             Cerrar
