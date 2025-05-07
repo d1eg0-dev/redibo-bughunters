@@ -2,6 +2,7 @@
 
 import NotificacionPago100 from "@/components/Pago100%";
 import Notificacion50PorCiento from "@/components/Notificacion50PorCiento";
+import NotificacionErrorPago50 from "@/components/NotificacionErrorPago50"; // ✅ Importado
 import NotificacionSinPago from "@/components/NotificacionSinPago";
 import { useState, useEffect } from "react";
 import type { ChangeEvent, FormEvent } from "react";
@@ -17,13 +18,14 @@ export default function SimuladorPago() {
     usuarioId: ""
   });
 
-  const [precio, setPrecio] = useState(0); // Precio real traído de la BD
+  const [precio, setPrecio] = useState(0);
   const [resultado, setResultado] = useState<"exito" | "fallo" | null>(null);
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [modalCargando, setModalCargando] = useState(false);
   const [mostrarNotificacion100, setMostrarNotificacion100] = useState(false);
   const [mostrarNotificacion50, setMostrarNotificacion50] = useState(false);
+  const [mostrarErrorPago50, setMostrarErrorPago50] = useState(false); // ✅ Nuevo estado
   const [mostrarNotificacionno, setMostrarNotificacionno] = useState(false);
 
   const router = useRouter();
@@ -31,29 +33,26 @@ export default function SimuladorPago() {
   useEffect(() => {
     async function cargarDatosIniciales() {
       try {
-        // Cargar costo de automóvil
-      const resAuto = await fetch("/api/automovil/1");
-      const autoData = await resAuto.json();
-      setPrecio(parseFloat(autoData.costo));  // 👈 CORREGIDO: asegurar que sea número
+        const resAuto = await fetch("/api/automovil/1");
+        const autoData = await resAuto.json();
+        setPrecio(parseFloat(autoData.costo));
 
-      // Cargar datos del usuario
-      const resUser = await fetch("/api/usuario/1");
-      const userData = await resUser.json();
+        const resUser = await fetch("/api/usuario/1");
+        const userData = await resUser.json();
 
-      setFormData(prev => ({
-        ...prev,
-        nombreUsuario: userData.nombre,
-        usuarioId: userData.id
-      }));
-    } catch (error) {
-      console.error("Error cargando datos iniciales:", error);
-    }
-    const notificacion100 = localStorage.getItem("mostrarNotificacion100");
-    if (notificacion100 === "true") {
-      setMostrarNotificacion100(true);
-    }
+        setFormData(prev => ({
+          ...prev,
+          nombreUsuario: userData.nombre,
+          usuarioId: userData.id
+        }));
+      } catch (error) {
+        console.error("Error cargando datos iniciales:", error);
+      }
 
-    
+      const notificacion100 = localStorage.getItem("mostrarNotificacion100");
+      if (notificacion100 === "true") {
+        setMostrarNotificacion100(true);
+      }
     }
 
     cargarDatosIniciales();
@@ -88,7 +87,7 @@ export default function SimuladorPago() {
     setCargando(true);
 
     try {
-      const res = await fetch("/api/pagar"); // Aquí normalmente verificarías pago
+      const res = await fetch("/api/pagar");
       const data = await res.json();
 
       if (!res.ok) {
@@ -98,16 +97,29 @@ export default function SimuladorPago() {
         setResultado("exito");
 
         const montoCalculado = (precio * parseFloat(formData.porcentaje) / 100).toFixed(2);
-        const fechaActual = new Date().toLocaleString('es-BO', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        const fechaActual = new Date().toLocaleString('es-BO', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
 
         await registrarPago(montoCalculado, formData.metodoPago, fechaActual);
 
-        if (parseFloat(formData.porcentaje) === 100) {
+        const porcentaje = parseFloat(formData.porcentaje);
+
+        if (porcentaje === 100) {
           setMostrarNotificacion100(true);
           localStorage.setItem("mostrarNotificacion100", "true");
-        } else if (parseFloat(formData.porcentaje) === 50) {
-          setMostrarNotificacion50(true);
-        } else if (parseFloat(formData.porcentaje) === 0) {
+        } else if (porcentaje === 50) {
+          const aleatorio = Math.random() < 0.5;
+          if (aleatorio) {
+            setMostrarNotificacion50(true);
+          } else {
+            setMostrarErrorPago50(true);
+          }
+        } else if (porcentaje === 0) {
           setMostrarNotificacionno(true);
         }
       }
@@ -129,7 +141,6 @@ export default function SimuladorPago() {
 
   const porcentajeReserva = parseFloat(formData.porcentaje) || 0;
   const totalPagarHoy = precio * (porcentajeReserva / 100);
-  
 
   return (
     <div className="pago-container">
@@ -164,30 +175,45 @@ export default function SimuladorPago() {
         </button>
       </form>
 
-      {/* MOSTRAR MENSAJE DE RESULTADO */}
+      {/* RESULTADOS */}
       {resultado === "exito" && <p className="mensaje exito">✅ ¡Pago registrado exitosamente!</p>}
       {resultado === "fallo" && <p className="mensaje error">❌ Error procesando el pago</p>}
 
-      {/* MODALES DE NOTIFICACIONES */}
+      {/* NOTIFICACIONES */}
       {mostrarNotificacion100 && (
-  <NotificacionPago100
-    monto={totalPagarHoy.toFixed(2)}
-    onClose={() => {
-      setMostrarNotificacion100(false);
-      // Limpiamos el localStorage para que la notificación no vuelva a mostrarse tras recargar
-      localStorage.removeItem("mostrarNotificacion100");
-    }}
-  /> )}
-  {mostrarNotificacion50 && <Notificacion50PorCiento monto={totalPagarHoy.toFixed(2)} onClose={() => setMostrarNotificacion50(false)} />}
-      {mostrarNotificacionno && <NotificacionSinPago onClose={() => setMostrarNotificacionno(false)} />}
+        <NotificacionPago100
+          monto={totalPagarHoy.toFixed(2)}
+          onClose={() => {
+            setMostrarNotificacion100(false);
+            localStorage.removeItem("mostrarNotificacion100");
+          }}
+        />
+      )}
+      {mostrarNotificacion50 && (
+        <Notificacion50PorCiento
+          monto={totalPagarHoy.toFixed(2)}
+          onClose={() => setMostrarNotificacion50(false)}
+        />
+      )}
+      {mostrarErrorPago50 && (
+        <NotificacionErrorPago50
+          monto={totalPagarHoy.toFixed(2)}
+          onClose={() => setMostrarErrorPago50(false)}
+        />
+      )}
+      {mostrarNotificacionno && (
+        <NotificacionSinPago onClose={() => setMostrarNotificacionno(false)} />
+      )}
 
-      {/* MODAL DE ERROR */}
+      {/* MODAL ERROR */}
       {error && (
         <ErrorNotification
           error={error}
           onClose={() => setError(null)}
           modalCargando={modalCargando}
-          onAceptar={cerrarModal} title={""}        />
+          onAceptar={cerrarModal}
+          title=""
+        />
       )}
     </div>
   );
